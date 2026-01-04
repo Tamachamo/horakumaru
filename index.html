@@ -144,23 +144,28 @@
 
 function Gallery({ results, onOpen }) {
   const items = (results || [])
-    .filter(r => r.photo_url)   // ← ②の「未設定は完全非表示」
+    .filter(r => r.photo_url)   // 画像未設定は完全に表示しない
     .slice(0, 16);
 
-  if (items.length === 0) return null; // 何も表示しない
+  if (items.length === 0) return null;
 
   return (
     <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
       {items.map((r, i) => {
-        const src = r.photo_url;
+        const src = r.photo_url; // GAS側でthumbnail形式にしてある前提
+        const dateText = r.date || ""; // yyyy-mm-dd のまま表示
+
         const cap = [r.date, r.fish, r.count ? (r.count + "杯/匹") : "", r.max_cm ? (r.max_cm + "cm") : ""]
-          .filter(Boolean).join(" / ");
+          .filter(Boolean)
+          .join(" / ");
 
         return (
           <button
             key={i}
-            onClick={() => onOpen(src)}
+            type="button"
+            onClick={() => onOpen?.(src, dateText)}
             className="relative overflow-hidden rounded-xl ring-1 ring-white/10 bg-white/5 group focus:outline-none"
+            aria-label={cap || "釣果写真を拡大表示"}
           >
             <img
               src={src}
@@ -168,13 +173,23 @@ function Gallery({ results, onOpen }) {
               loading="lazy"
               className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
+
+            {/* hover overlay */}
             <span className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition"></span>
+
+            {/* date badge (yyyy-mm-dd) */}
+            {dateText ? (
+              <span className="absolute bottom-2 left-2 rounded-md bg-black/70 px-2 py-0.5 text-[11px] font-semibold text-white">
+                {dateText}
+              </span>
+            ) : null}
           </button>
         );
       })}
     </div>
   );
 }
+
 
 
     function ResultsList({results}) {
